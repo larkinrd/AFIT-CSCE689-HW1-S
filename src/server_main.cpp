@@ -10,8 +10,9 @@
 #include <iostream>
 #include <getopt.h>
 #include "TCPServer.h"
+#include "LogClient.h"
 
-using namespace std; 
+using namespace std;
 
 void displayHelp(const char *execname) {
    std::cout << execname << " [-p <portnum>] [-a <ip_addr>]\n";
@@ -33,9 +34,19 @@ int main(int argc, char *argv[]) {
    // Get the command line arguments and set params appropriately
    int c = 0;
    long portval;
+
+//***LARKIN TO DELETE
+//std::cout << "The contents of c is:" << c << "\n"; 
+//std::cout << "The contents of argc is:" << argc << "\n"; 
+//std::cout << "The contents of argv[0] is:" << argv[0] << "\n";
+//std::cout << "The contents of argv[1] is:" << argv[1] << "\n"; 
+//***LARKIN TO DELETE
+
+
+
    while ((c = getopt(argc, argv, "p:a:smw")) != -1) {
       switch (c) {
-  
+
       // Set the max number to count up to	    
       case 'p':
 	      portval = strtol(optarg, NULL, 10);
@@ -64,30 +75,56 @@ int main(int argc, char *argv[]) {
 
    }
 
+   //Create a logging client
+   
+   LogClient mylogger("log.server_main.cpp");
+   std::string logmsg; // = "test message from main"; 
+
    // Try to set up the server for listening
    TCPServer server;
    try {
-      cout << "Binding server to " << ip_addr << " port " << port << endl;
-      server.bindSvr(ip_addr.c_str(), port);
+      //cout << "Binding server to " << ip_addr << " port " << port << endl;
+   //   logmsg = "Attempting to bind server to "; logmsg += ip_addr; logmsg += " port "; logmsg += port;
+   //   mylogger.WriteToLogFile(logmsg);
+      server.BindServer(ip_addr.c_str(), port);
 
    } catch (invalid_argument &e) 
    {
-      cerr << "Server initialization failed: " << e.what() << endl;
+      //cerr << "Server initialization failed: " << e.what() << endl;
+   //   logmsg = "Server initialization failed";
+   //   mylogger.WriteToLogFile(logmsg);
       return -1;
    }	   
 
-   cout << "Server established.\n";
+  logmsg = "Successfully bound server to "; logmsg += ip_addr; logmsg += " port "; logmsg += port;
+   mylogger.WriteToLogFile(logmsg);
+
+   //cout << "Server established.\n";
 
    try {
       cout << "Listening.\n";	   
-      server.listenSvr();
+      server.ListenServer();
    } catch (invalid_argument &e) {
       cerr << "Server error received: " << e.what() << endl;
       return -1;      
    }
 
-   server.shutdown();
+   //Server is listening, go into infinite loop and handle connections
+   //for (;;){
+   server.HandleAcceptedObjects();
+   //}
 
-   cout << "Server shut down\n";
+
+   //PAUSE EXECUTION VIA GETCH()
+   std::cout << "Pause and getch(): ";
+   getchar();
+   server.ShutdownServer();
+
+   //cout << "Server shut down\n";
+   logmsg = "Server shut down";
+   mylogger.WriteToLogFile(logmsg);
+
    return 0;
 }
+
+

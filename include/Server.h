@@ -22,11 +22,15 @@ class Server {
       virtual ~Server();
 
       // Overload me!
-      virtual void bindSvr(const char *ip_addr, unsigned short port) = 0;
-      virtual void listenSvr() = 0;
+      virtual void BindServer(const char *ip_addr, unsigned short port) = 0;
+      virtual void ListenServer() = 0;
 
       // if you overload, don't forget to call me
-      virtual void shutdown() = 0;
+      // ???WHAT DOES THE VIRTUAL VOID MEAN???   AND
+      // ??? WHY DO I NEED THE =0; AT THE END... ADDING THIS RESOLVED MY COMPILIER
+      // ERROR OF NOT RECURSIVE SOMETHING OR OTHER
+      virtual void HandleAcceptedObjects(/*socket_object, socket_id*/) =0;
+      virtual void ShutdownServer() = 0;
 
    protected:
 

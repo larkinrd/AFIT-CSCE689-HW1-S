@@ -16,3 +16,9 @@ Commands not on this list should display an error message.
 Recommend creating additional classes for modularity and reusability. Add additional files
 to src/Makefile.am and rerun autoreconf and ./configure to integrate support for your new
 files. 
+
+Larkins HW1 Approach
+- Build the menu which prompts user with choices, accepts the input, and provides the output, displays error msg
+- Set up a socket
+- Review and think through header files, classes, functions/methods, and variables
+- PAUSE

@@ -11,6 +11,7 @@
 #include <getopt.h>
 #include "exceptions.h"
 #include "TCPClient.h"
+#include "LogClient.h"
 
 using namespace std; 
 
@@ -41,24 +42,37 @@ int main(int argc, char *argv[]) {
  
 
    // Get the command line arguments and set params appropriately
+   //
+   //  I THINK I NEED TO DO THIS!!!
+   //
+   /////////////
+
+   //Add LogClient to Makefile.am and Create a logging client
+   LogClient clientlogger("log.client_main.cpp");
+   std::string logmsg; // = "test message from main"; 
 
    // Try to set up the server for listening
    TCPClient client;
    try {
       cout << "Connecting to " << ip_addr << " port " << port << endl;
       client.connectTo(ip_addr.c_str(), port);
+      //std::cout << "59:did this execute";
 
    } catch (socket_error &e)
    {
       cerr << "Connection failed: " << e.what() << endl;
+      //std::cout << "63:did this execute";
       return -1;
    }	   
 
    cout << "Connection established.\n";
 
+    
+   //client.handleConnection();
+   
+   
    try {
       client.handleConnection();
-
       client.closeConn();
       cout << "Client disconnected\n";
 
