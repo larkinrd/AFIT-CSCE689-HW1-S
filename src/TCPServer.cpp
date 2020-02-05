@@ -240,6 +240,8 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
      //printf("server: got connection from %s port %d\n",
      //       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
+   std::cout << "243:inhandleobjects" << std::endl;
+   
     //accept the incoming connection 
 	addrlen = sizeof(_address); 
    //std::cout << "213:Waiting for connections\n";
@@ -247,13 +249,13 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
    
    //For Nonblocking I need a struct timeval... or just the two things in the struct??
    struct timeval timeout;
-   timeout.tv_sec = 0;
-   timeout.tv_usec = 100;
-
-while(TRUE) 
-	{ 
-		//clear the socket set 
-	
+   
+   while(TRUE) {
+	 
+		timeout.tv_sec = 0;
+      timeout.tv_usec = 100;
+      
+      //clear the socket set 
 		FD_ZERO(&readfds); 
 	
 		//add master socket to set 
@@ -281,7 +283,7 @@ while(TRUE)
 		
 		//timeval ... long tv_set
 		//create a timeval and put the numbers i want in there which are 0 sec and 10microsend or so
-		activity = select( max_sd + 1 , &readfds , NULL , NULL , &timeout); //the last parameter is a timeout... could put 10ms and it would not be blocking
+		activity = select( max_sd + 1, &readfds , NULL , NULL , &timeout); //the last parameter is a timeout... could put 10ms and it would not be blocking
 	
 		if ((activity < 0) && (errno!=EINTR)) 
 		{ 
@@ -310,8 +312,9 @@ while(TRUE)
 			{ 
 				perror("did not write full message to socket"); 
 			} else {
-			puts("Welcome message sent successfully"); 
-         sendMenu(new_socket);
+            write(new_socket, message.c_str(), message.size());
+            sendMenu(new_socket);
+			   puts("Welcome message sent successfully"); 
          }
 				
 			//add new socket to array of sockets 
@@ -347,16 +350,25 @@ while(TRUE)
 					//Close the socket and mark as 0 in list for reuse 
 					close( sd ); 
 					client_socket[i] = 0; 
-				} 
-					
-				//DONT Echo back the message that came in, DO SOMETHING
-				else
-				{ 
-					//set the string terminating NULL byte on the end 
+				} else { 
+				
+            //Echo back the message that came in  
+                 
+                   
+                    //set the string terminating NULL byte on the end  
+                    //of the data read  
+                    buffer[valread] = '\0';   
+                    send(sd , buffer , strlen(buffer) , 0 );   
+                    //write(sd, buffer, sizeof(buffer));
+                
+            
+            
+            	//set the string terminating NULL byte on the end 
 					//of the data read 
-					//if (strlen(buffer) > 0){
-               buffer[valread] = '\0'; // read() returned number of bytes read
-					//send(sd , buffer , strlen(buffer) , 0 );
+               
+				/*	if (strlen(buffer) > 0){
+                     buffer[valread] = '\0'; // read() returned number of bytes read
+					      //send(sd , buffer , strlen(buffer) , 0 );
                     std::string tempstring = buffer;
                     getMenuChoice(sd, tempstring);
                     
@@ -364,7 +376,7 @@ while(TRUE)
                     bzero(buffer, sizeof(buffer));  
                     //send(sd, "another", 7, 0);
                     sendMenu(sd);
-               //}
+               } */
 				} 
 			} 
 		} 
@@ -517,10 +529,10 @@ void TCPServer::getMenuChoice(int socketFD, std::string userinput) {
 
 
 void TCPServer::displayCountdown (int socketFD) {
-      std::cout << "countdown: ";
+      std::cout << "countdown: " << std::endl;
       write(socketFD, "countdown", 10);
       for (int i=3; i>0; --i) {
-         std::cout << i << ".. ";
+         std::cout << i << ".. "  << std::endl;
          write(socketFD, "x", 2);
          std::this_thread::sleep_for (std::chrono::seconds(1));
       }
@@ -546,7 +558,7 @@ void TCPServer::Chat (int socketfdforchattting){
         read(socketfdforchattting, chatbuffer, sizeof(chatbuffer)); 
         // print buffer which contains the client contents 
         //printf("From client: %s\t To client : ", chatbuffer); 
-        std::cout << chatbuffer;
+        std::cout << chatbuffer  << std::endl;
         bzero(chatbuffer, sizeof(chatbuffer)); 
         n = 0; 
         // copy server message in the buffer 

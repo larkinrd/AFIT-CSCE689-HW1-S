@@ -31,6 +31,7 @@ char buffer[1025];
 TCPClient::TCPClient() {
     //I THINK I COULD USE THE CONSTRUCTOR TO BUILD MY LOGCLIENT... BUT I WILL JUST PUT IN
     //CLIENT_MAIN.CPP FOR NOW
+    //bzero(buffer,1025);
 }
 
 /**********************************************************************************************
@@ -147,7 +148,7 @@ void TCPClient::handleConnection() {
    
    // This data type (explained here: https://www.gnu.org/software/libc/manual/html_node/Waiting-for-I_002fO.html)
    // is a bit array
-   fd_set readfds, writefds; //only needed within this function
+   fd_set readfds;//, writefds; //only needed within this function
    
    //For Nonblocking I need a struct timeval... or just the two things in the struct??
    struct timeval timeout;
@@ -160,25 +161,49 @@ void TCPClient::handleConnection() {
 
 		//clear the socket set 
 		FD_ZERO(&readfds); 
-        FD_ZERO(&writefds);
+        //FD_ZERO(&writefds); unnecessary
 	
 		//add socket to set 
 		FD_SET(sockfd, &readfds); //comes back with the same value
-        FD_SET(sockfd, &writefds); // I THOUGHT ONE WOULD TELL ME IF FILEDESCRIPTOR IS READY FOR READ VS WRITE
+        FD_SET(STDIN_FILENO, &readfds);
+        //FD_SET(sockfd, &writefds); // I THOUGHT ONE WOULD TELL ME IF FILEDESCRIPTOR IS READY FOR READ VS WRITE
 	
 		//wait for an activity on one of the sockets , timeout is NULL , 
 		//so wait indefinitely 
 		
 		//timeval ... long tv_set
 		//create a timeval and put the numbers i want in there which are 0 sec and 10microsend or so
-		activity = select( sockfd , &readfds , &writefds , NULL , &timeout); //the last parameter is a timeout... could put 10ms and it would not be blocking
+		activity = select( sockfd + 1, &readfds , NULL , NULL , &timeout); //the last parameter is a timeout... could put 10ms and it would not be blocking
 	
 		if ((activity < 0) && (errno!=EINTR)) 
 		{ 
 			printf("select error"); 
-		} else { // activity returns a File Descriptor ready for reading or writing.. call chat function
-            Chat();
+		} 
+        
+        // activity returns a File Descriptor from server to client, is it the server socket?
+        if (FD_ISSET(sockfd, &readfds)){
+            read(sockfd, buffer, sizeof(buffer));
+        }    
+                
+        // activity returns a File Descriptor from server to client, is it STDIN from the client?
+        // HOW DOES INPUT GET INTO THE BUFFER?... DUH... read the STDIN and then write to the Server Socket
+        if (FD_ISSET(STDIN_FILENO, &readfds)) { //FileDescriptor 0 is STDIN
+            read(STDIN_FILENO, buffer, sizeof(buffer));    
+            write(sockfd, buffer, sizeof(buffer));
+            
+            if (strncmp("exit", buffer, 4) == 0) { 
+            //printf("Client Exit...\n"); 
+            break; 
+            //closeConn();
+            }     
         }
+        
+        //zero out the buffer
+        bzero(buffer, sizeof(buffer));     
+            
+            
+            //Chat();
+        
 
     }
    
@@ -229,8 +254,7 @@ void TCPClient::Chat (/*int socketfdforchatting*/){
         // if msg contains "Exit" then server exit and chat ended. 
         if (strncmp("exit", buffer, 4) == 0) { 
             printf("Client Exit...\n"); 
-            //break; 
-            closeConn();
+            
         } 
     //}
 }  
@@ -243,6 +267,7 @@ void TCPClient::Chat (/*int socketfdforchatting*/){
 
 void TCPClient::closeConn() {
     close(sockfd);
+    //close(STDIN_FILENO);
 }
 
 

@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/src/tcpclient",
             "args": ["127.0.0.1", "9999"],
             //"program": "${workspaceFolder}/src/tcpserver",
-            //"args": ["-p 3333"],            
+            //"args": ["-p 3334"],            
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

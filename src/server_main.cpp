@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
       case 'p':
 	      portval = strtol(optarg, NULL, 10);
 	      if ((portval < 1) || (portval > 65535)) {
-            std::cout << "Invalid port. Value must be between 1 and 65535";
-            std::cout << "Format: " << argv[0] << " [<max_range>] [<max_threads>]\n";
+            std::cout << "Invalid port. Value must be between 1 and 65535"  << std::endl;
+            std::cout << "Format: " << argv[0] << " [<max_range>] [<max_threads>]\n"  << std::endl;
             exit(0);
 	      }
 	      port = (unsigned short) portval;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	      break;
 
       default:
-	      std::cout << "Unknown command line option '" << c << "'\n";
+	      std::cout << "Unknown command line option '" << c << "'\n"  << std::endl;
 	      displayHelp(argv[0]);
 	      break;
       }
@@ -83,23 +83,23 @@ int main(int argc, char *argv[]) {
    // Try to set up the server for listening
    TCPServer server;
    try {
-      //cout << "Binding server to " << ip_addr << " port " << port << endl;
-   //   logmsg = "Attempting to bind server to "; logmsg += ip_addr; logmsg += " port "; logmsg += port;
-   //   mylogger.WriteToLogFile(logmsg);
+      cout << "Binding server to " << ip_addr << " port " << port << endl;
+      logmsg = "Attempting to bind server to "; logmsg += ip_addr; logmsg += " port "; logmsg += port;
+      mylogger.WriteToLogFile(logmsg);
       server.BindServer(ip_addr.c_str(), port);
 
    } catch (invalid_argument &e) 
    {
-      //cerr << "Server initialization failed: " << e.what() << endl;
-   //   logmsg = "Server initialization failed";
-   //   mylogger.WriteToLogFile(logmsg);
+      cerr << "Server initialization failed: " << e.what() << endl;
+      logmsg = "Server initialization failed";
+      mylogger.WriteToLogFile(logmsg);
       return -1;
    }	   
 
-  logmsg = "Successfully bound server to "; logmsg += ip_addr; logmsg += " port "; logmsg += port;
+   logmsg = "Successfully bound server to "; logmsg += ip_addr; logmsg += " port "; logmsg += port;
    mylogger.WriteToLogFile(logmsg);
 
-   //cout << "Server established.\n";
+   cout << "Server established.\n";
 
    try {
       cout << "Listening.\n";	   
@@ -111,12 +111,17 @@ int main(int argc, char *argv[]) {
 
    //Server is listening, go into infinite loop and handle connections
    //for (;;){
-   server.HandleAcceptedObjects();
-   //}
-
+   
+   try {
+      std::cout << "116:before handleobjects" << std::endl; //https://dev.to/lucpattyn/stdcout-is-not-printing-in-consoleterminal-5emn
+      server.HandleAcceptedObjects();
+   } catch (runtime_error &e) {
+      cerr << "Client error received: " << e.what() << std::endl;
+      return -1;
+   }
 
    //PAUSE EXECUTION VIA GETCH()
-   std::cout << "Pause and getch(): ";
+   std::cout << "Pause and getch(): "  << std::endl;
    getchar();
    server.ShutdownServer();
 
