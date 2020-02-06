@@ -1,6 +1,26 @@
 #include <algorithm>
 #include <termios.h>
 #include "strfuncts.h"
+#include <thread> //for std::this_thread
+#include <chrono>
+#include <string.h>
+#include <string> 
+#include <iostream> //for std::cout
+
+// MY LEARNING NOTES
+ // std::cout AND printf CAN be used with CHAR ARRAYS
+ // You DO NOT ues printf() with STRINGS
+ // Using clrNewLines removed the \0 or \n; therefore I could not print to
+ //    to the screen correctly
+
+void displayCountdown (int countdown) {
+      std::cout << "countdown: ";
+      for (int i=countdown; i>0; --i) {
+         std::cout << i << ".. ";
+         std::this_thread::sleep_for (std::chrono::seconds(1));
+      }
+   std::cout << std::endl;
+}
 
 void clrNewlines(std::string &str) {
    str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());

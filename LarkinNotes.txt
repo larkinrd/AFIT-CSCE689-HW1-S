@@ -1,0 +1,13 @@
+Adding function to class and call it from main
+I created a function in TCPserver called void printServerMenu();
+I added void printServerMenu(); to the TCPServer HEADER file
+I added #include <iostream>  so member functions can use std::cout
+Inside void printServerMenu I added 5 lines of text to display to the screen
+I added server.printServerMenu() to server_main so that the function is executed
+
+The approach for this assignment
+- Set up a listner on the server (geeks for geeks echo server)
+- connect to the lister, and display the server menu 
+- user selects option from the menu, server responds
+
+server should be a single-process non-blocking server that can accept multiple concurrent 

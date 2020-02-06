@@ -73,11 +73,18 @@ int main(int argc, char *argv[]) {
    
    try {
       client.handleConnection();
+   } catch (runtime_error &e) {
+      cerr << "Client error received: " << e.what() << endl;
+      return -1;      
+   }
+
+   try {
+      //client.handleConnection();
       client.closeConn();
       cout << "Client disconnected\n";
 
    } catch (runtime_error &e) {
-      cerr << "Client error received: " << e.what() << endl;
+      cerr << "Client Disconnect errored: " << e.what() << endl;
       return -1;      
    }
 

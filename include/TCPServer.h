@@ -22,8 +22,10 @@ public:
    void ShutdownServer();
    void error(const char *msg);
    void sendMenu(int socketFD);
-   void getMenuChoice(int socketFD, std::string userinput);
-   void displayCountdown (int socketFD);
+   //using const char *userinput becuase I dont need to modify userinput buffer
+   // *userinput is a pointer to a charachter array
+   void ProcessClientResponse(int socketFD, char *userinput);
+   //void displayCountdown (int socketFD);
 	
 private:
  

@@ -63,8 +63,8 @@ TCPServer::TCPServer() {
 	{ 
 		client_socket[i] = 0; 
 	} 
-   message = "Welcome to the CSCE 689 Server\n\n===================================\n\n";
-
+   message = "\nWelcome to the CSCE 689 Server\n\n===================================\n\n";
+   bzero(buffer, sizeof(buffer));
 }
 
 
@@ -312,7 +312,6 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 			{ 
 				perror("did not write full message to socket"); 
 			} else {
-            write(new_socket, message.c_str(), message.size());
             sendMenu(new_socket);
 			   puts("Welcome message sent successfully"); 
          }
@@ -324,7 +323,7 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 				if( client_socket[i] == 0 ) 
 				{ 
 					client_socket[i] = new_socket; 
-					printf("Adding to list of sockets as %d\n" , i); 
+					printf("Storing in socket position %d\n" , i); 
 						
 					break; 
 				} 
@@ -340,26 +339,68 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 			{ 
 				//Check if it was for closing , and also read the 
 				//incoming message 
-				if ((valread = read( sd , buffer, 1024)) < 0) //a -1 is an error
+            //I DONT THINK I NEED THIS... I KNOW I NEED TO DO SOMETHING
+            //WITH WHATEVER IS ON THE SOCKET
+
+            //READ THE BUFFER AND DO SOMETHING IF THERE ARE MORE
+            //THAN ZERO BYTES ON THE BUFFER
+            int numbytesread = 0;
+            if((numbytesread = read( sd , buffer, 1025)) > 0) {
+               //WRITE TO SCREEN
+               //std::cout << buffer;// << std::endl;
+               
+               //Pass input to the getMenuChoice Fucntion 
+               //sendMenuReponse(sd, buffer);
+
+
+               if (strncmp("exit", buffer, 4) == 0) { 
+                  getpeername(sd , (struct sockaddr*)&_address , (socklen_t*)&addrlen);
+                  printf("Host ip %s on port %d with socket fd %d in socket array position %d disconnected.\n", 
+                     inet_ntoa(_address.sin_addr) , ntohs(_address.sin_port), sd, i); 
+                  //Close the socket and mark as 0 in list for reuse 
+                  close( sd ); 
+                  client_socket[i] = 0; 
+
+               }
+
+               //I would get a second processing of a blank "" buffer yieling an
+               // unrecognized command after server sends a response
+               ProcessClientResponse(sd, buffer);
+               sendMenu(new_socket);
+            }
+
+            //WRITE BACK TO SOCKET (IE ECHO)
+            //write(sd, buffer, sizeof(buffer));
+            
+            
+            
+            bzero(buffer, sizeof(buffer));
+
+
+            /*
+            if ((valread = read( sd , buffer, 1024)) < 0) //a -1 is an error
 				{ 
 					//Somebody disconnected , get his details and print 
 					getpeername(sd , (struct sockaddr*)&_address , (socklen_t*)&addrlen);
-					printf("Host disconnected , ip %s , port %d \n" , 
-						inet_ntoa(_address.sin_addr) , ntohs(_address.sin_port)); 
+					printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(_address.sin_addr) , ntohs(_address.sin_port)); 
 						
 					//Close the socket and mark as 0 in list for reuse 
 					close( sd ); 
 					client_socket[i] = 0; 
 				} else { 
-				
+				/*
             //Echo back the message that came in  
                  
                    
                     //set the string terminating NULL byte on the end  
                     //of the data read  
                     buffer[valread] = '\0';   
-                    send(sd , buffer , strlen(buffer) , 0 );   
-                    //write(sd, buffer, sizeof(buffer));
+                    
+                    //THERE IS A DIFFERENCE BETWEEN SEND() AND WRITE()
+                    //send(sd , buffer , strlen(buffer) , 0 );   
+                    
+                    
+                    write(sd, buffer, sizeof(buffer));
                 
             
             
@@ -376,8 +417,8 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
                     bzero(buffer, sizeof(buffer));  
                     //send(sd, "another", 7, 0);
                     sendMenu(sd);
-               } */
-				} 
+               //} 
+				} */
 			} 
 		} 
 	}
@@ -409,18 +450,13 @@ void TCPServer::sendMenu(int socketFD) {
 
    // Make this your own!
    menustr += "Available choices: \n";
-   menustr += "  1). Provide weather report.\n";
-   menustr += "  2). Learn the secret of the universe.\n";
-   menustr += "  3). Play global thermonuclear war\n";
-   menustr += "  4). Do nothing.\n";
-   menustr += "  5). Sing. Sing a song. Make it simple, to last the whole day long.\n\n";
+   menustr += "  1). Tell you Industrial Control System (ICS) terminology.\n";
+   menustr += "  2). Tell you my favorite movie?\n";
+   menustr += "  3). Tell you my favorite quote?\n";
+   menustr += "  4). What is 2 + 2?\n";
+   menustr += "  5). Tell you my favorite N64 Video Game\n\n";
    menustr += "Other commands: \n";
-   menustr += "  Hello - this class is very difficult. I'm not\n";
-   menustr += "          sure about the value in troubleshooting\n";
-   menustr += "          off by one characters like newlines, whitespaces,\n";
-   menustr += "          and other various 'C/C++ 'isms.' However,\n";
-   menustr += "          I do appreciate your patience and understainding'\n";
-   menustr += "          This is sure to help me with future ICS research.\n";
+   menustr += "  Hello - a personal greeting from Spaz's insecure server\n";
    menustr += "  Passwd - change your password\n";
    menustr += "  Menu - display this menu\n";
    menustr += "  Exit - disconnect.\n\n";
@@ -442,104 +478,60 @@ void TCPServer::sendMenu(int socketFD) {
  *    Throws: runtime_error for unrecoverable issues
  **********************************************************************************************/
 
-void TCPServer::getMenuChoice(int socketFD, std::string userinput) {
-   //if (!sockFD.hasData())
-   //   return;
-   //std::string cmd;
-   //if (!getUserInput(cmd))
-   //   return;
-   clrNewlines(userinput);
-   std::string passedinput = userinput;
-   lower(passedinput);      
+void TCPServer::ProcessClientResponse(int socketFD, char *userinput) {
 
+   //NOTE: std::cout AND printf can be used with CHAR ARRAYS
+   //NOTE: You DO NOT ues printf() with STRINGS
+   std::cout << "Using std::cout to print CHAR userinput: " << userinput;
+   printf("Using printf() to print CHAR userinput: %s", userinput);
+   //creating a string and initilizing to value of userinput
+   std::string passedinput = userinput; 
+   //std::cout << "Using std::cout to print STRING passedinput: " << passedinput;
+   clrNewlines(passedinput);
+   lower(passedinput);      
+   //std::cout << "Using std::cout to print STRING passedinput AFTEROPS: " << passedinput;
+   
    // Don't be lazy and use my outputs--make your own! Sir, its 0106... I've been at this since 1730 yesterday 29JAN
    std::string msg;
-   if (userinput.compare("hello") == 0) {
-	   msg = "Sir, its 0106... I've been at this since 1730 yesterday 29JAN...I'm leaving this alone!\n";
-      //sockFD.writeFD("Sir, its 0106... I've been at this since 1730 yesterday 29JAN...I'm leaving this alone!\n");
-	  msg = "";
+   if (passedinput.compare("hello") == 0) {
+	   msg = "What.. I already gave you a welcome greeting. Pick another option.\n";
 	  write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-      //sendMenu();
-   } else if (userinput.compare("menu") == 0) {
-	   msg = "";
+   } else if (passedinput.compare("menu") == 0) {
+	   msg = ""; //write a blank message and basically DO NOTHING
 	  write(socketFD, msg.c_str(), msg.size());
-      sendMenu(socketFD);
-   } else if (userinput.compare("exit") == 0) {
-      //sockFD.writeFD("Disconnecting...goodbye!\n");
+   } else if (passedinput.compare("exit") == 0) {
 	  msg = "Disconnecting...goodbye!\n";
 	  write(socketFD, msg.c_str(), msg.size());
-     // disconnect();
-   } else if (userinput.compare("passwd") == 0) {
-      msg += " ITS 0244 AND I MADE AN HONEST EFFORT AT THIS. MY THOUGHT WAS TO:\n";
-      msg += " have user enter existing password and check it\n";
-      msg += " have user enter new password once\n";
-      msg += " have user enter new password second time\n";
-      msg += " check that the passwords are equal\n";
-      msg += " create a new password file\n";
-      msg += " copy in all the users over EXCEPT the current user\n";
-      msg += " add a 'new' user with the users new passwords\n";
-      msg += " delete the original password file\n";
-      msg += " rename the newpassword file to passwd\n";
-      //sockFD.writeFD(msg);
+   } else if (passedinput.compare("passwd") == 0) {
+      msg += "Partially coded up in my HW2\n";
 	  write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-
-      //_connfd.writeFD("New Password: ");
-      //_status = s_changepwd;
-   } else if (userinput.compare("1") == 0) {
-      msg += "You want a prediction about the weather? You're asking the wrong Phil.\n";
-      msg += "I'm going to give you a prediction about this winter. It's going to be\n";
-      msg += "cold, it's going to be dark and it's going to last you for the rest of\n";
-      msg += "your lives!\n";
-      //sockFD.writeFD(msg);
+   } else if (passedinput.compare("1") == 0) {
+      msg += "I recommend you look up the terms Industrial Internet of Things (IIoT), Operational Technoglogy (OT) networks "
+             "Information Technology (IT) networks, business networks, and Industray 4.0 to name a few.\n";
 	  write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-   } else if (userinput.compare("2") == 0) {
-      //sockFD.writeFD("42\n");
-	  msg = "42\n";
+   } else if (passedinput.compare("2") == 0) {
+	  msg = "Jurassic Park\n";
 	  write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-   } else if (userinput.compare("3") == 0) {
-      msg = "That seems like a terrible idea.\n";
+   } else if (passedinput.compare("3") == 0) {
+      msg = "The only thing necessary for the triumph of evil is that good men do nothing.\n";
       write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-   } else if (userinput.compare("4") == 0) {
-      msg = "Why was this left blank Robert asks?\n";
+   } else if (passedinput.compare("4") == 0) {
+      msg = "Ha, I think AFIT has a math class where you prove that? or maybe disprove it? I don't know....\n";
       write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-   } else if (userinput.compare("5") == 0) {
-      msg = "I'm singing, I'm in a computer and I'm siiiingiiiing! I'm in a\n";
+   } else if (passedinput.compare("5") == 0) {
+      msg = "F-ZEROX\n";
       write(socketFD, msg.c_str(), msg.size());
-      msg = "computer and I'm siiiiiiinnnggiiinnggg!\n";
-      write(socketFD, msg.c_str(), msg.size());
-      //displayCountdown(socketFD);
-      //sendMenu(socketFD);
    } else {
       msg = "Unrecognized command: ";
       msg += userinput;
       msg += "\n";
 	  write(socketFD, msg.c_str(), msg.size());
-	  //displayCountdown(socketFD);
-      //sockFD.writeFD(msg);
    }
-
+  //displayCountdown(5); //display counted for n seconds to console screen
 }
 
 
 
-void TCPServer::displayCountdown (int socketFD) {
-      std::cout << "countdown: " << std::endl;
-      write(socketFD, "countdown", 10);
-      for (int i=3; i>0; --i) {
-         std::cout << i << ".. "  << std::endl;
-         write(socketFD, "x", 2);
-         std::this_thread::sleep_for (std::chrono::seconds(1));
-      }
-      //std::cout << "\nEnd displayCountdown() send menu to client\n";
-      //_connfd.writeFD("End displayCountdown() receive menu from server\n");
-      sendMenu(socketFD);
-}
 
 /**********************************************************************************************
  * chat - For chatting over the passed in Socket File Descriptor

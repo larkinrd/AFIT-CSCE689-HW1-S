@@ -5,14 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "gcc build and debug active file",
+            "name": "g++ build and debug active file",
             "type": "cppdbg",
             "request": "launch",
             //"program": "${fileDirname}/${fileBasenameNoExtension}",
-            "program": "${workspaceFolder}/src/tcpclient",
-            "args": ["127.0.0.1", "9999"],
-            //"program": "${workspaceFolder}/src/tcpserver",
-            //"args": ["-p 3334"],            
+            //"args": [],
+            "program": "${workspaceFolder}/src/tcpserver",
+            "args": ["-p 3333"],  
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -25,7 +24,7 @@
                     "ignoreFailures": true
                 }
             ],
-            //"preLaunchTask": "gcc build active file",
+            //"preLaunchTask": "g++ build active file",
             //"miDebuggerPath": "/usr/bin/gdb"
         }
     ]

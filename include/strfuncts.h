@@ -1,5 +1,8 @@
 #include <string>
 
+//Add my display countdown to the console screen
+void displayCountdown(int countdown);
+
 // Remove /r and /n from a string
 void clrNewlines(std::string &str);
 

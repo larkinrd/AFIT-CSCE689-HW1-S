@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <getopt.h>
+#include "strfuncts.h"
 
 //NOTE: Prepoccesor directive above end with a newline.. inserting comments can mess things up
 //OR and again OR... this is a VS CODE ism thing!!!
@@ -152,8 +153,8 @@ void TCPClient::handleConnection() {
    
    //For Nonblocking I need a struct timeval... or just the two things in the struct??
    struct timeval timeout;
-   
-   while(TRUE) 
+   int connected = 1;
+   while(connected == 1) 
 	{ 
         //neds to be in while loop as it got cleared... overwritten somehow
         timeout.tv_sec = 0;
@@ -183,19 +184,27 @@ void TCPClient::handleConnection() {
         // activity returns a File Descriptor from server to client, is it the server socket?
         if (FD_ISSET(sockfd, &readfds)){
             read(sockfd, buffer, sizeof(buffer));
+            std::cout << buffer;
+            displayCountdown(3);
         }    
                 
         // activity returns a File Descriptor from server to client, is it STDIN from the client?
         // HOW DOES INPUT GET INTO THE BUFFER?... DUH... read the STDIN and then write to the Server Socket
         if (FD_ISSET(STDIN_FILENO, &readfds)) { //FileDescriptor 0 is STDIN
             read(STDIN_FILENO, buffer, sizeof(buffer));    
-            write(sockfd, buffer, sizeof(buffer));
             
-            if (strncmp("exit", buffer, 4) == 0) { 
-            //printf("Client Exit...\n"); 
-            break; 
-            //closeConn();
-            }     
+            //TEST FOR BUFFER OVERFLOW FIRST
+            if(n > sizeof(buffer)) {  
+            printf("\n\nAre you trying to fill my buffer? How Rude!\n");    
+            } else if (strncmp("exit", buffer, 4) == 0) { 
+            connected = 0;
+            } else { //write valid input to buffer and send to server
+                write(sockfd, buffer, sizeof(buffer));/* code */
+            }
+            
+            bzero(buffer, sizeof(buffer));
+            
+               
         }
         
         //zero out the buffer
@@ -206,10 +215,20 @@ void TCPClient::handleConnection() {
         
 
     }
-   
-   
-   
+
     
+}
+
+
+/**********************************************************************************************
+ * closeConnection - Your comments here
+ *
+ *    Throws: socket_error for recoverable errors, runtime_error for unrecoverable types
+ **********************************************************************************************/
+
+void TCPClient::closeConn() {
+    close(sockfd);
+    //close(STDIN_FILENO);
 }
 
 void TCPClient::Chat (/*int socketfdforchatting*/){
@@ -259,15 +278,5 @@ void TCPClient::Chat (/*int socketfdforchatting*/){
     //}
 }  
 
-/**********************************************************************************************
- * closeConnection - Your comments here
- *
- *    Throws: socket_error for recoverable errors, runtime_error for unrecoverable types
- **********************************************************************************************/
-
-void TCPClient::closeConn() {
-    close(sockfd);
-    //close(STDIN_FILENO);
-}
 
 
