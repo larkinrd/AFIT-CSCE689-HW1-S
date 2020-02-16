@@ -40,14 +40,7 @@ int main(int argc, char *argv[]) {
    }
    unsigned short port = (unsigned short) portval;
  
-
-   // Get the command line arguments and set params appropriately
-   //
-   //  I THINK I NEED TO DO THIS!!!
-   //
-   /////////////
-
-   //Add LogClient to Makefile.am and Create a logging client
+   //Added LogClient to Makefile.am and Create a logging client
    LogClient clientlogger("log.client_main.cpp");
    std::string logmsg; // = "test message from main"; 
 
@@ -66,9 +59,6 @@ int main(int argc, char *argv[]) {
    }	   
 
    cout << "Connection established.\n";
-
-    
-   //client.handleConnection();
    
    
    try {
@@ -79,7 +69,6 @@ int main(int argc, char *argv[]) {
    }
 
    try {
-      //client.handleConnection();
       client.closeConn();
       cout << "Client disconnected\n";
 

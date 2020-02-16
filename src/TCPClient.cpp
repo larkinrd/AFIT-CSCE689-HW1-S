@@ -13,16 +13,13 @@
 #include <iostream>
 #include <getopt.h>
 #include "strfuncts.h"
+#include <limits>
+#include <chrono>
+#include <thread>
 
-//NOTE: Prepoccesor directive above end with a newline.. inserting comments can mess things up
-//OR and again OR... this is a VS CODE ism thing!!!
 
-/* MOVE TO CLASS Private variables
-int sockfd, portno, n;
-struct sockaddr_in serv_addr;
-struct hostent *server;
-char buffer[1025];
-*/
+//NOTE: Prepoccesor directiveS above end with a newline.. inserting comments or spaces seems
+//to mess things up... but that MIGHT be a VS CODE ism thing!!!
 
 /**********************************************************************************************
  * TCPClient (constructor) - Creates a Stdin file descriptor to simplify handling of user input. 
@@ -30,9 +27,7 @@ char buffer[1025];
  **********************************************************************************************/
 
 TCPClient::TCPClient() {
-    //I THINK I COULD USE THE CONSTRUCTOR TO BUILD MY LOGCLIENT... BUT I WILL JUST PUT IN
-    //CLIENT_MAIN.CPP FOR NOW
-    //bzero(buffer,1025);
+    bzero(buffer,sizeof(1025));
 }
 
 /**********************************************************************************************
@@ -41,9 +36,13 @@ TCPClient::TCPClient() {
  **********************************************************************************************/
 
 TCPClient::~TCPClient() {
-
 }
 
+// SEE https://linux.die.net/man/3/perror
+//When a system call fails, it usually returns -1 and sets the variable errno to a value 
+//describing what went wrong. (These values can be found in <errno.h>.) Many library functions 
+//do likewise. The function perror() serves to translate this error code into human-readable form. 
+//Note that errno is undefined after a successful library call
 void TCPClient::error(const char *msg)
 {
     perror(msg);
@@ -58,26 +57,23 @@ void TCPClient::error(const char *msg)
  **********************************************************************************************/
 
 
-
 void TCPClient::connectTo(const char *ip_addr, unsigned short port) {
-    std::cout << "58:did this execute\n";
-    portno = port;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
-        error("ERROR opening socket");
-    //server = gethostbyname(ip_addr); //NOT USING HOSTNAMES HERE
-    //if (server == NULL) {
-    //    fprintf(stderr,"ERROR, no such host\n");
-    //    exit(0);
-    //}
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
     
-    std::cout << "71:did this execute\n";
-    //REPLACED BELOW 
+    //SET THE PORT NUMBER ENTERED IN BY THE USER
+    portno = port;
+
+    //CREATE A TCP SOCKET
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) //RETURNS -1 IF FAILED TO CREATE A SOCKET
+        error("ERROR opening socket");
+    
+    //ZERO OUT THE STRUCT SOCKADDR_IN
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET; //SET TO IPV4
+    
+    //THIS WAS THE OLD CODE, YOU USE '->' TO ACCESS METHODS/FUNCTIONS OF POINTERS
     //bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
-    //WITH
-    //so I could pass in IP Address
+    //I REPLACED THE CODE WITH THIS SO THAT THE USER CAN PASS IN THE IP ADDRESS FOR THE SERVER
     serv_addr.sin_addr.s_addr = inet_addr(ip_addr);
 
     //set the port number, put in network format with htons()
@@ -89,29 +85,6 @@ void TCPClient::connectTo(const char *ip_addr, unsigned short port) {
     } else {
         std::cout << "connected to server..\n";
     }
-
-    //Chat(sockfd); //PROGRAM LATER TO RETURN THE SOCKET FD (AN INTEGER)
-    //since sockfd now saved as private class variable, i can access it in other functions 
-    //and don't need to pass it.
-    std::cout << "89:did this execute after Chat(sockfd)\n";
-    
-    /* ORIGINAL CODE BLOCK WILL BE MOVED AND MODIFIED IN handleConnection()
-    printf("Please enter the message: ");
-    std::cout << "84:did this execute\n";
-    bzero(buffer,1025);
-    fgets(buffer,1025,stdin);
-    n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) 
-         error("ERROR writing to socket");
-    bzero(buffer,1025);
-    n = read(sockfd, buffer, 1025);
-    if (n < 0) 
-         error("ERROR reading from socket");
-    printf("%s\n", buffer);
-    // Moving this to close connection close(sockfd);
-    //return 0; not returning anything
-    */
-
 }
 
 /**********************************************************************************************
@@ -124,38 +97,18 @@ void TCPClient::connectTo(const char *ip_addr, unsigned short port) {
 
 void TCPClient::handleConnection() {
     
-    
-    /* OLD CODE... INSERTING CHAT FUNCTION CODE
-    //read from server first
-    n = read(sockfd, buffer, 1025);
-    if (n < 0) 
-         error("ERROR reading from socket");
-    printf("%s\n", buffer);
-    
-    //send to server next
-    printf("Please enter the message: ");
-    std::cout << "115:did this execute\n";
-    bzero(buffer,1025);
-    fgets(buffer,1025,stdin);
-    n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) 
-         error("ERROR writing to socket");
-    bzero(buffer,1025);
-    */
-
-   
-   //Put in logic for if socket has data... like master_socket in TCPServer, but we have a client with only 
-   //its socket connection stored in my private variable of TCPClient
-   
    // This data type (explained here: https://www.gnu.org/software/libc/manual/html_node/Waiting-for-I_002fO.html)
    // is a bit array
-   fd_set readfds;//, writefds; //only needed within this function
+   fd_set readfds;//, writefds - I don't need writefds per Lt Col Noel; 
    
-   //For Nonblocking I need a struct timeval... or just the two things in the struct??
+   //For Nonblocking I use the struct timeval
    struct timeval timeout;
    int connected = 1;
    while(connected == 1) 
 	{ 
+        //zero out the buffer before reading or writing
+        bzero(buffer, sizeof(buffer)); 
+        
         //neds to be in while loop as it got cleared... overwritten somehow
         timeout.tv_sec = 0;
         timeout.tv_usec = 100;
@@ -169,12 +122,9 @@ void TCPClient::handleConnection() {
         FD_SET(STDIN_FILENO, &readfds);
         //FD_SET(sockfd, &writefds); // I THOUGHT ONE WOULD TELL ME IF FILEDESCRIPTOR IS READY FOR READ VS WRITE
 	
-		//wait for an activity on one of the sockets , timeout is NULL , 
-		//so wait indefinitely 
-		
-		//timeval ... long tv_set
-		//create a timeval and put the numbers i want in there which are 0 sec and 10microsend or so
-		activity = select( sockfd + 1, &readfds , NULL , NULL , &timeout); //the last parameter is a timeout... could put 10ms and it would not be blocking
+		//create a timeval and put the numbers I want in there which are 0 sec and 10microsend
+        //the last parameter is a timeout... could put 10ms and it would not be blocking
+		activity = select( sockfd + 1, &readfds , NULL , NULL , &timeout); 
 	
 		if ((activity < 0) && (errno!=EINTR)) 
 		{ 
@@ -183,100 +133,91 @@ void TCPClient::handleConnection() {
         
         // activity returns a File Descriptor from server to client, is it the server socket?
         if (FD_ISSET(sockfd, &readfds)){
-            read(sockfd, buffer, sizeof(buffer));
-            std::cout << buffer;
-            displayCountdown(3);
+            if ( read(sockfd, buffer, sizeof(buffer)) != 0) {
+            /*****IT TOOK ME ONE HOUR TO FIGURE OUT I NEEDED std::endl!****/
+            std::cout << buffer << std::endl; //AND I DONT KNOW WHY
+            /*****IT TOOK ME ONE HOUR TO FIGURE OUT I NEEDED std::endl!****/
+            } else {
+                std::cout << "Problem with server connection.\nIssuing client disconnect.\n";
+                connected = 0;
+            }
         }    
                 
-        // activity returns a File Descriptor from server to client, is it STDIN from the client?
-        // HOW DOES INPUT GET INTO THE BUFFER?... DUH... read the STDIN and then write to the Server Socket
+        //Read from STDIN, loop over STDIN until everyting is read, do client side checking
+        //and write to the socket to send a message to the server
         if (FD_ISSET(STDIN_FILENO, &readfds)) { //FileDescriptor 0 is STDIN
-            read(STDIN_FILENO, buffer, sizeof(buffer));    
+		
+			std::string inputbuf;
+			size_t sz = 0;
+			while ((sz = read(STDIN_FILENO, buffer, 1024)) == 1024) {
+				if (sz == 1024) {
+					buffer[1024] = 0;
+				}
+				inputbuf += buffer;
+			}				
+            inputbuf += buffer;
             
+            //convert userinput to all lowercase with Lt Col Noels function
+            lower(inputbuf);
+			
             //TEST FOR BUFFER OVERFLOW FIRST
-            if(n > sizeof(buffer)) {  
-            printf("\n\nAre you trying to fill my buffer? How Rude!\n");    
-            } else if (strncmp("exit", buffer, 4) == 0) { 
-            connected = 0;
-            } else { //write valid input to buffer and send to server
-                write(sockfd, buffer, sizeof(buffer));/* code */
+            if(inputbuf.size() > 1025) {  //remember buffer is set to 1025
+            std::cout << "\n\nAre you trying to fill my buffer? How Rude!\nType 'menu' to see the menu again." << std::endl;    
+            bzero(buffer, strlen(buffer));
+            //std::cin.clear();  //THIS DIDN'T WORK; LT COL NOELS LOOPING TO COLLECT ALL USERINPUT WORKED
+            //std::cin.sync();  // THIS DIDN'T WORK
+            //ELSE TEST FOR EXIT 
+            } else if (strncmp("exit", inputbuf.c_str(), 4) == 0) { 
+            connected = 0; //RELY ON SERVER TO SEVER CONNECTION
+            write(sockfd, "exit", 4);
+            } else if (strncmp("1", inputbuf.c_str(), 1) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else if (strncmp("2", inputbuf.c_str(), 1) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else if (strncmp("3", inputbuf.c_str(), 1) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else if (strncmp("4", inputbuf.c_str(), 1) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else if (strncmp("5", inputbuf.c_str(), 1) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else if (strncmp("hello", inputbuf.c_str(), 5) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else if (strncmp("passwd", inputbuf.c_str(), 6) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            }else if (strncmp("menu", inputbuf.c_str(), 4) == 0) { 
+            write(sockfd, buffer, sizeof(buffer));
+            } else { //INVALID INPUT DON'T SEND
+                std::cout << "INVALID INPUT.\n";
+                bzero(buffer, sizeof(buffer));
+                write(sockfd, "menu", 4);
             }
-            
             bzero(buffer, sizeof(buffer));
             
-               
         }
-        
         //zero out the buffer
         bzero(buffer, sizeof(buffer));     
-            
-            
-            //Chat();
-        
-
-    }
-
-    
+    }  
 }
 
 
 /**********************************************************************************************
- * closeConnection - Your comments here
+ * closeConnection - close returns zero on success, a -1 on failure
  *
  *    Throws: socket_error for recoverable errors, runtime_error for unrecoverable types
  **********************************************************************************************/
 
 void TCPClient::closeConn() {
-    close(sockfd);
-    //close(STDIN_FILENO);
-}
-
-void TCPClient::Chat (/*int socketfdforchatting*/){
-
-    //check to see if socket has data with the select() function
-
-
-
-    //std::cout << "chat received" << socketfdforchattting;
-    //char chatbuffer[1025]; // replaced with buffer from TCPClient.h private variable
-    int n; // A local n for counting charaters on chatbuffer with getch
-        
-    //for (;;) { 
-        //bzero(buffer, sizeof(buffer)); 
-
-        // read the message from client and copy it in buffer 
-        //printf("From client:\n");
-        read(sockfd, buffer, sizeof(buffer)); 
-        
-        // print buffer which contains the client contents 
-        printf(buffer); 
-		
-        
-        bzero(buffer, sizeof(buffer)); 
-        n = 0; 
-        // copy server message in the buffer 
-        
-        while ((buffer[n++] = getchar()) != '\n') 
-            ; 
-        
-        //while ((chatbuffer[n++] = getchar_unlocked()) != '\n') 
-        //scanf("%[^\n]",ch)
-
-		if(n > sizeof(buffer)) {  
-            printf("\n\nAre you trying to fill my buffer? How Rude!\n");
-            bzero(buffer, sizeof(buffer));    
-            //break; This will break from the function and program if you want
-        } 
-        // and send that buffer to client 
-        write(sockfd, buffer, sizeof(buffer)); 
-
-        // if msg contains "Exit" then server exit and chat ended. 
-        if (strncmp("exit", buffer, 4) == 0) { 
-            printf("Client Exit...\n"); 
+    //give the server 2 seconds to close the connection first
+    std::this_thread::sleep_for (std::chrono::milliseconds(1000));
+    
+    //check for one last read from server to collects its goodbye message
+    if ( read(sockfd, buffer, sizeof(buffer)) != 0) {
+    std::cout << buffer << std::endl; 
+    }
             
-        } 
-    //}
-}  
-
-
+    //then close the socket on the client side
+    if (close(sockfd) != 0) {
+        std::cout << "error occured when closing socket FD";
+    }
+}
 

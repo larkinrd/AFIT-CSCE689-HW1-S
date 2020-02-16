@@ -23,23 +23,6 @@
 
 using namespace std;
 
-
-
-
-/********* MOVING TO CLASS PRIVATE VARIABLE AREA CAUSES THIS COMPILER ERROR
-error: field ‘_address’ has incomplete type ‘sockaddr_in’
- **********/////
-   //set of socket descriptors 
- /*	int opt = TRUE; 
-	int master_socket , addrlen , new_socket , client_socket[30], max_clients = 2 , activity, i , valread , sd; 
-	int max_sd; 
-	struct sockaddr_in _address; 
-    
-	//a message 
-	//char *message = (char *) "ECHO Daemon v1.0\r\n"; 
-   std::string message = "Welcome to the CSCE 689 Server\n\n===================================\n\n";
-	char buffer[1025]; //data buffer of 1K
-*/
 /***************** SOCKET OVERVIEW
  * Server Socket from https://www.bogotobogo.com/cplusplus/sockets_server_client.php
  * 1. create a socket - Get the file descriptor!
@@ -51,19 +34,17 @@ error: field ‘_address’ has incomplete type ‘sockaddr_in’
  * 7. close to releases data.
  * ***************/
 
-//TCPSERVER CLASS VARIABLES
-
-
-
 TCPServer::TCPServer() {
 
-    //initialise all client_socket[] to 0 so not checked 
-   max_clients = 2;
-	for (i = 0; i < max_clients; i++) 
+   //max_clients is set in the HEADER FILE and is set to 30
+   //initialise array client_socket[] to store n slots for sockets up to max_clients
+   for (i = 0; i < max_clients; i++) 
 	{ 
 		client_socket[i] = 0; 
 	} 
-   message = "\nWelcome to the CSCE 689 Server\n\n===================================\n\n";
+   //initilize clase wide string variable
+   message = "\nWelcome to the CSCE 689 Server\n\n===================================";
+   //zero out the send/receive buffer between server and client
    bzero(buffer, sizeof(buffer));
 }
 
@@ -85,6 +66,7 @@ TCPServer::~TCPServer() {
  * process. A socket is named using bind() system call.
  **********************************************************************************************/
 
+//SEE TCP Client for more information on perror() inside this TCPServer error() function
 void TCPServer::error(const char *msg)
 {
     perror(msg);
@@ -93,9 +75,8 @@ void TCPServer::error(const char *msg)
 
 void TCPServer::BindServer(const char *ip_addr, short unsigned int port) {
 
-   
-
-     	//create a master socket 
+  	//create a master socket which will MOST LIKELY be socket number//file descriptor 3
+   //since 0 = Standard In; 1 = Standard out; and 2 = Standard error
 	if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) 
 	{ 
 		perror("socket failed"); 
@@ -104,64 +85,42 @@ void TCPServer::BindServer(const char *ip_addr, short unsigned int port) {
 	
 	//set master socket to allow multiple connections , 
 	//this is just a good habit, it will work without this 
-	if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, 
-		sizeof(opt)) < 0 ) 
+	if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0 ) 
 	{ 
 		perror("setsockopt"); 
 		exit(EXIT_FAILURE); 
 	} 
 	
-	//type of socket created 
+	//create IPv4 type of socket 
 	_address.sin_family = AF_INET; 
-	_address.sin_addr.s_addr = inet_addr(ip_addr);
+	
+    //REPLACE INADDR_ANY which grabs this servers IP address
     //address.sin_addr.s_addr = INADDR_ANY; 
+    //TO 
+    _address.sin_addr.s_addr = inet_addr(ip_addr);
+    //SET THE PORT NUMBER WITH THE ONE PASSED IN FROM COMMAND LINE ARGS[]
+    //and convert it to network byte order
 	_address.sin_port = htons( port ); 
 		
-	//bind the socket to localhost port passed in as an argument (default is 9999) 
+	//bind the socket to localhost port passed in as an argument
+   //the default IP was 127.0.0.1 and default port is 9999 
 	if (bind(master_socket, (struct sockaddr *)&_address, sizeof(_address))<0) 
 	{ 
 		perror("bind failed"); 
 		exit(EXIT_FAILURE); 
 	} 
 
-     
-     
-     // create a socket
-     // socket(int domain, int type, int protocol)
-    // sockfd =  socket(AF_INET, SOCK_STREAM, 0);
-    // if (sockfd < 0) 
-    //    error("ERROR opening socket");
-
-    // clear address structure
-    //bzero((char *) &serv_addr, sizeof(serv_addr));
-
-    //portno = port;
-
-     /* setup the host_addr structure for use in bind call */
-     // server byte order
-    //serv_addr.sin_family = AF_INET;  
-
+    /*******************************/
     // inet_aton() converts the Internet host address cp from the IPv4
     //   numbers-and-dots notation into binary form (in network byte order)
     //   and stores it in the structure that inp points to. 
-    //in_addr_t 
-    //inet_aton(ip_addr, serv_addr.sin_addr.s_addr);
-
-    // automatically be filled with current host's IP address
-     //serv_addr.sin_addr.s_addr = INADDR_ANY;  //THIS WAS THE DEFAULT CODE FROM WEBSITE
-
-    // fill with IP address of the one passed via command line arguments in server_main.cpp
-     //serv_addr.sin_addr.s_addr = inet_addr(ip_addr);    
-     
-     // convert short integer value for port must be converted into network byte order
-     //serv_addr.sin_port = htons(portno);
-
      // bind(int fd, struct sockaddr *local_addr, socklen_t addr_length)
      // bind() passes file descriptor, the address structure, 
      // and the length of the address structure
      // This bind() call will bind  the socket to the current IP address on port, portno
      //if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
      //         error("ERROR on binding");
+     /*******************************/
    
 }
 
@@ -182,24 +141,13 @@ void TCPServer::BindServer(const char *ip_addr, short unsigned int port) {
 
 void TCPServer::ListenServer() {
 
-
-//AFTER LISTEN... WHEN YOU DECICDE TO ACCEPT() THE CONNECTION, ACCEPT() RETURNS A SOCKET OBJECT
-//I COULD SIMPLY MANAGE 3 SOCKET OBJECTS AND CALL IT GOOD... IE I DEMONSTRATED/LEARNED HOW TO DO THIS
-
-/***** Accept a connection with the accept() system call. At accept(), a new socket is created that is 
- * distinct from the named socket. This new socket is used solely for communication with this 
- * particular client. For TCP servers, the socket object used to receive connections IS NOT THE SAME
- * socket used to perform subsequent communication with the client. In particular, the accept() 
- * system call returns a new socket object that's actually used for the connection. This allows a server 
- * to manage connections from a large number of clients simultaneously.
- * **********/
-
-// PUT ACCEPT() CODE HERE FOR HANDLING SOCKET OBJECTS
+     /*******************************/
      // This listen() call tells the socket to listen to the incoming connections.
      // The listen() function places all incoming connection into a backlog queue
      // until accept() call accepts the connection.
      // Here, we set the maximum size for the backlog queue to 5.
      //listen(sockfd,5);
+     /*******************************/
     
     //try to specify maximum of 3 pending connections for the master socket 
 	if (listen(master_socket, 3) < 0) 
@@ -221,12 +169,15 @@ void TCPServer::ListenServer() {
 
 void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
     
-    //put in infinite loop waiting to handle connections
-    //for(;;){
-    // The accept() call actually accepts an incoming connection
-     //clilen = sizeof(cli_addr);
-
-          // This accept() function will write the connecting client's address info 
+/*************MY NOTES******************/
+    /***** Accept a connection with the accept() system call, after accept() completes, a new socket is 
+ * created that is distinct from the named socket. This new socket is used solely for communication with this 
+ * particular client. For TCP servers, the socket object used to receive connections IS NOT THE SAME
+ * socket used to perform subsequent communication with the client. In particular, the accept() 
+ * system call returns a new socket object that's actually used for the connection. This allows a server 
+ * to manage connections from a large number of clients simultaneously.
+ * **********/
+     // This accept() function will write the connecting client's address info 
      // into the the address structure and the size of that structure is clilen.
      // The accept() returns a new socket file descriptor for the accepted connection.
      // So, the original socket file descriptor can continue to be used 
@@ -234,26 +185,27 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
      // communicating with the connected client.
      //newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
      
-     //if (newsockfd < 0) 
-     //     error("ERROR on accept");
-
-     //printf("server: got connection from %s port %d\n",
-     //       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-
-   std::cout << "243:inhandleobjects" << std::endl;
+	
+   //For Nonblocking functionality, I need an object to hold a set of file descitpors and
+   //I need a struct timeval to pass as a parameter to select() function so that the
+   //program doesn't just sit their waiting for activity on the socket
    
-    //accept the incoming connection 
-	addrlen = sizeof(_address); 
-   //std::cout << "213:Waiting for connections\n";
-	fd_set readfds; //only needed within this function
    
-   //For Nonblocking I need a struct timeval... or just the two things in the struct??
-   struct timeval timeout;
+   //get the size/length of the sockaddr_in structure
+   //per instruction from Col Noel, many different types of connections use
+   //the sock_addr in structure such as IPv4 or IPv6 or TCP or UDP... the compuer
+   //can diferentiate between the different combinations based on the size of certain
+   //pieces and parts in the sockaddr_in structure. 
+/*************END MY NOTES******************/
+   
+   fd_set readfds; 
+   struct timeval timeout; 
+   addrlen = sizeof(_address); 
    
    while(TRUE) {
 	 
-		timeout.tv_sec = 0;
-      timeout.tv_usec = 100;
+		timeout.tv_sec = 0; //zero seconds
+      timeout.tv_usec = 100;//100 microseconds, maybe this could be 10, but the program works
       
       //clear the socket set 
 		FD_ZERO(&readfds); 
@@ -278,11 +230,9 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 				
 		} 
 	
-		//wait for an activity on one of the sockets , timeout is NULL , 
-		//so wait indefinitely 
-		
-		//timeval ... long tv_set
-		//create a timeval and put the numbers i want in there which are 0 sec and 10microsend or so
+		//check to see if there is activity on a socket, wait for only 100 microseconds
+      //NOTE the last parameter was NULL which meant wait forever for activity
+      //when changed to 100microseconds, this becomes a nonblocking operation		
 		activity = select( max_sd + 1, &readfds , NULL , NULL , &timeout); //the last parameter is a timeout... could put 10ms and it would not be blocking
 	
 		if ((activity < 0) && (errno!=EINTR)) 
@@ -290,8 +240,7 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 			printf("select error"); 
 		} 
 			
-		//If something happened on the master socket , 
-		//then its an incoming connection 
+		//If something happened on the master socket, then its an incoming connection 
 		if (FD_ISSET(master_socket, &readfds)) 
 		{ 
 			if ((new_socket = accept(master_socket, 
@@ -301,13 +250,11 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 				exit(EXIT_FAILURE); 
 			} 
 			
-			//inform user of socket number - used in send and receive commands 
+			//print to server console information about the new connection
 			printf("New connection , socket fd is %d , ip is : %s , port : %d \n", 
                 new_socket , inet_ntoa(_address.sin_addr) , ntohs(_address.sin_port)); 
 		
 			//send new connection greeting message
-             
-			 //change this to write()
 			if( write(new_socket, message.c_str(), message.size()) != message.size() ) 
 			{ 
 				perror("did not write full message to socket"); 
@@ -319,106 +266,43 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 			//add new socket to array of sockets 
 			for (i = 0; i < max_clients; i++) 
 			{ 
-				//if position is empty 
+				//if position is empty, add new socket to the first empty position 
 				if( client_socket[i] == 0 ) 
 				{ 
 					client_socket[i] = new_socket; 
 					printf("Storing in socket position %d\n" , i); 
-						
 					break; 
 				} 
 			} 
 		} 
 			
-		//else its some IO operation on some other socket 
+		//If nothing triggered on the MASTER socket, its some other IO operation on some other socket
+      //LOOP to figure out which socket 
 		for (i = 0; i < max_clients; i++) 
 		{ 
 			sd = client_socket[i]; 
 				
 			if (FD_ISSET( sd , &readfds)) 
 			{ 
-				//Check if it was for closing , and also read the 
-				//incoming message 
-            //I DONT THINK I NEED THIS... I KNOW I NEED TO DO SOMETHING
-            //WITH WHATEVER IS ON THE SOCKET
-
-            //READ THE BUFFER AND DO SOMETHING IF THERE ARE MORE
-            //THAN ZERO BYTES ON THE BUFFER
             int numbytesread = 0;
+            //read from the buffer, processes client input, and send a response to client
             if((numbytesread = read( sd , buffer, 1025)) > 0) {
-               //WRITE TO SCREEN
-               //std::cout << buffer;// << std::endl;
                
-               //Pass input to the getMenuChoice Fucntion 
-               //sendMenuReponse(sd, buffer);
+               ProcessClientResponse(sd, buffer);
 
-
+               //if exit was selected... finish processing the server side client disconnect here
+               //by printing information about the closing socket to the console
                if (strncmp("exit", buffer, 4) == 0) { 
                   getpeername(sd , (struct sockaddr*)&_address , (socklen_t*)&addrlen);
                   printf("Host ip %s on port %d with socket fd %d in socket array position %d disconnected.\n", 
                      inet_ntoa(_address.sin_addr) , ntohs(_address.sin_port), sd, i); 
-                  //Close the socket and mark as 0 in list for reuse 
                   close( sd ); 
                   client_socket[i] = 0; 
-
                }
-
-               //I would get a second processing of a blank "" buffer yieling an
-               // unrecognized command after server sends a response
-               ProcessClientResponse(sd, buffer);
-               sendMenu(new_socket);
-            }
-
-            //WRITE BACK TO SOCKET (IE ECHO)
-            //write(sd, buffer, sizeof(buffer));
-            
-            
-            
-            bzero(buffer, sizeof(buffer));
-
-
-            /*
-            if ((valread = read( sd , buffer, 1024)) < 0) //a -1 is an error
-				{ 
-					//Somebody disconnected , get his details and print 
-					getpeername(sd , (struct sockaddr*)&_address , (socklen_t*)&addrlen);
-					printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(_address.sin_addr) , ntohs(_address.sin_port)); 
-						
-					//Close the socket and mark as 0 in list for reuse 
-					close( sd ); 
-					client_socket[i] = 0; 
-				} else { 
-				/*
-            //Echo back the message that came in  
-                 
-                   
-                    //set the string terminating NULL byte on the end  
-                    //of the data read  
-                    buffer[valread] = '\0';   
-                    
-                    //THERE IS A DIFFERENCE BETWEEN SEND() AND WRITE()
-                    //send(sd , buffer , strlen(buffer) , 0 );   
-                    
-                    
-                    write(sd, buffer, sizeof(buffer));
-                
-            
-            
-            	//set the string terminating NULL byte on the end 
-					//of the data read 
                
-				/*	if (strlen(buffer) > 0){
-                     buffer[valread] = '\0'; // read() returned number of bytes read
-					      //send(sd , buffer , strlen(buffer) , 0 );
-                    std::string tempstring = buffer;
-                    getMenuChoice(sd, tempstring);
-                    
-                    write(sd, buffer, sizeof(buffer));
-                    bzero(buffer, sizeof(buffer));  
-                    //send(sd, "another", 7, 0);
-                    sendMenu(sd);
-               //} 
-				} */
+            }
+            //after all operations, zero out the buffer
+            bzero(buffer, sizeof(buffer));
 			} 
 		} 
 	}
@@ -436,7 +320,7 @@ void TCPServer::HandleAcceptedObjects(/*socket_object, socket_id*/) {
 void TCPServer::ShutdownServer() {
 
      close(master_socket);
-     //close(); // the client sockets should alread be closed OR lopp over and close them
+     
 }
 
 /**********************************************************************************************
@@ -445,30 +329,25 @@ void TCPServer::ShutdownServer() {
  *    Throws: runtime_error for unrecoverable issues
  **********************************************************************************************/
 void TCPServer::sendMenu(int socketFD) {
-   //std::cout << "Enter sendMenu() and DO SOMETHING\n"; 
+   
    std::string menustr;
 
-   // Make this your own!
-   menustr += "Available choices: \n";
-   menustr += "  1). Tell you Industrial Control System (ICS) terminology.\n";
-   menustr += "  2). Tell you my favorite movie?\n";
-   menustr += "  3). Tell you my favorite quote?\n";
-   menustr += "  4). What is 2 + 2?\n";
-   menustr += "  5). Tell you my favorite N64 Video Game\n\n";
+   // Make this your own! - OK
+   menustr += "\nAvailable choices: \n\n";
+   menustr += "  1 - Tell you Industrial Control System (ICS) terminology.\n";
+   menustr += "  2 - Tell you my favorite movie?\n";
+   menustr += "  3 - Tell you my favorite ps -auquote?\n";
+   menustr += "  4 - What is 2 + 2?\n";
+   menustr += "  5 - Tell you my favorite N64 Video Game\n\n";
    menustr += "Other commands: \n";
-   menustr += "  Hello - a personal greeting from Spaz's insecure server\n";
-   menustr += "  Passwd - change your password\n";
-   menustr += "  Menu - display this menu\n";
-   menustr += "  Exit - disconnect.\n\n";
-
-   //std::cout << menustr;
-   //send(socketFD, menustr.c_str(), sizeof(menustr), 0);
-   write(socketFD, menustr.c_str(), menustr.size()); 
-   //_connfd.writeFD(menustr);
+   menustr += "  hello - a personal greeting from Spaz's insecure server\n";
+   menustr += "  passwd - change your password\n";
+   menustr += "  menu - display this menu\n";
+   menustr += "  exit - disconnect.\n\nNOTE: 3 seconds are given to READ response from server\nEnter Your Choice Below: ";
    
-   //std::cout << "Press Enter Key to Exit sendMenu()\n\n";
-   //getchar();   
-   
+   if( write(socketFD, menustr.c_str(), menustr.size()) != menustr.size() ){
+      std::cout << "DID NOT write() full menustr in sendMenu(int socketFD)\n";
+   }    
 }
 
 /**********************************************************************************************
@@ -480,21 +359,17 @@ void TCPServer::sendMenu(int socketFD) {
 
 void TCPServer::ProcessClientResponse(int socketFD, char *userinput) {
 
-   //NOTE: std::cout AND printf can be used with CHAR ARRAYS
-   //NOTE: You DO NOT ues printf() with STRINGS
-   std::cout << "Using std::cout to print CHAR userinput: " << userinput;
-   printf("Using printf() to print CHAR userinput: %s", userinput);
-   //creating a string and initilizing to value of userinput
+   //using the passed in socket and user input, convert to std::string, do comparisons, and generate
+   //appropriate reponse. Except for exit (which breaks out of this funciton and returns), each option
+   //sends a response to the client, initiates a 3 second delay so client can read the response, and then
+   //the server resends the menu to the client
    std::string passedinput = userinput; 
-   //std::cout << "Using std::cout to print STRING passedinput: " << passedinput;
    clrNewlines(passedinput);
    lower(passedinput);      
-   //std::cout << "Using std::cout to print STRING passedinput AFTEROPS: " << passedinput;
    
-   // Don't be lazy and use my outputs--make your own! Sir, its 0106... I've been at this since 1730 yesterday 29JAN
    std::string msg;
    if (passedinput.compare("hello") == 0) {
-	   msg = "What.. I already gave you a welcome greeting. Pick another option.\n";
+	   msg = "\nWhat.. I already gave you a welcome greeting. Pick another option.\n";
 	  write(socketFD, msg.c_str(), msg.size());
    } else if (passedinput.compare("menu") == 0) {
 	   msg = ""; //write a blank message and basically DO NOTHING
@@ -502,68 +377,35 @@ void TCPServer::ProcessClientResponse(int socketFD, char *userinput) {
    } else if (passedinput.compare("exit") == 0) {
 	  msg = "Disconnecting...goodbye!\n";
 	  write(socketFD, msg.c_str(), msg.size());
+     return; //RETURN and DO NOT send the menu as the last instruction in this function
    } else if (passedinput.compare("passwd") == 0) {
-      msg += "Partially coded up in my HW2\n";
+      msg += "\nPartially coded up in my HW2\n";
 	  write(socketFD, msg.c_str(), msg.size());
    } else if (passedinput.compare("1") == 0) {
-      msg += "I recommend you look up the terms Industrial Internet of Things (IIoT), Operational Technoglogy (OT) networks "
+      msg += "\nI recommend you look up the terms Industrial Internet of Things (IIoT), Operational Technoglogy (OT) networks "
              "Information Technology (IT) networks, business networks, and Industray 4.0 to name a few.\n";
 	  write(socketFD, msg.c_str(), msg.size());
    } else if (passedinput.compare("2") == 0) {
-	  msg = "Jurassic Park\n";
+	  msg = "\nJurassic Park\n";
 	  write(socketFD, msg.c_str(), msg.size());
    } else if (passedinput.compare("3") == 0) {
-      msg = "The only thing necessary for the triumph of evil is that good men do nothing.\n";
+      msg = "\nThe only thing necessary for the triumph of evil is that good men do nothing.\n";
       write(socketFD, msg.c_str(), msg.size());
    } else if (passedinput.compare("4") == 0) {
-      msg = "Ha, I think AFIT has a math class where you prove that? or maybe disprove it? I don't know....\n";
+      msg = "\nHa, I think AFIT has a math class where you prove that? or maybe disprove it? I don't know....\n";
       write(socketFD, msg.c_str(), msg.size());
    } else if (passedinput.compare("5") == 0) {
-      msg = "F-ZEROX\n";
+      msg = "\nF-ZEROX\n";
       write(socketFD, msg.c_str(), msg.size());
    } else {
-      msg = "Unrecognized command: ";
+      msg = "\nUnrecognized command: ";
       msg += userinput;
       msg += "\n";
 	  write(socketFD, msg.c_str(), msg.size());
+     sendMenu(socketFD);
    }
-  //displayCountdown(5); //display counted for n seconds to console screen
+   //display counted for n seconds to server console screen
+   //FUNCTION found in strfuncts.cpp
+   displayCountdown(3); 
+   sendMenu(socketFD);  
 }
-
-
-
-
-/**********************************************************************************************
- * chat - For chatting over the passed in Socket File Descriptor
- **********************************************************************************************/
-
-void TCPServer::Chat (int socketfdforchattting){
-
-    //std::cout << "chat received" << socketfdforchattting;
-    char chatbuffer[256]; 
-    int n; // A local n for counting charaters on chatbuffer
-        
-    for (;;) { 
-        bzero(chatbuffer, sizeof(chatbuffer)); 
-
-        // read the message from client and copy it in buffer 
-        read(socketfdforchattting, chatbuffer, sizeof(chatbuffer)); 
-        // print buffer which contains the client contents 
-        //printf("From client: %s\t To client : ", chatbuffer); 
-        std::cout << chatbuffer  << std::endl;
-        bzero(chatbuffer, sizeof(chatbuffer)); 
-        n = 0; 
-        // copy server message in the buffer 
-        while ((chatbuffer[n++] = getchar()) != '\n') 
-            ; 
-
-        // and send that buffer to client 
-        write(socketfdforchattting, chatbuffer, sizeof(chatbuffer)); 
-
-        // if msg contains "Exit" then server exit and chat ended. 
-        if (strncmp("exit", chatbuffer, 4) == 0) { 
-            printf("Server Exit...\n"); 
-            break; 
-        } 
-    }
-} 

@@ -382,3 +382,65 @@ Thu Feb  6 16:55:23 2020 :: Attempting to bind server to 127.0.0.1 port 
 -->Start Pos. 26240. End Pos. 26314 : 74 bytes written w/newline
 Thu Feb  6 16:55:23 2020 :: Successfully bound server to 127.0.0.1 port 
 -->Start Pos. 26379. End Pos. 26453 : 74 bytes written w/newline
+Thu Feb  6 23:48:09 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 26518. End Pos. 26592 : 74 bytes written w/newline
+Thu Feb  6 23:48:18 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 26657. End Pos. 26731 : 74 bytes written w/newline
+Thu Feb  6 23:48:28 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 26796. End Pos. 26870 : 74 bytes written w/newline
+Thu Feb  6 23:48:28 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 26935. End Pos. 27009 : 74 bytes written w/newline
+Thu Feb  6 23:54:50 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 27074. End Pos. 27148 : 74 bytes written w/newline
+Thu Feb  6 23:54:52 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 27213. End Pos. 27287 : 74 bytes written w/newline
+Thu Feb  6 23:54:52 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 27352. End Pos. 27426 : 74 bytes written w/newline
+Thu Feb  6 23:57:11 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 27491. End Pos. 27565 : 74 bytes written w/newline
+Thu Feb  6 23:57:11 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 27630. End Pos. 27704 : 74 bytes written w/newline
+Fri Feb  7 00:01:16 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 27769. End Pos. 27843 : 74 bytes written w/newline
+Fri Feb  7 00:01:16 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 27908. End Pos. 27982 : 74 bytes written w/newline
+Fri Feb  7 00:03:38 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 28047. End Pos. 28121 : 74 bytes written w/newline
+Fri Feb  7 00:03:38 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 28186. End Pos. 28260 : 74 bytes written w/newline
+Fri Feb  7 00:03:42 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 28325. End Pos. 28399 : 74 bytes written w/newline
+Fri Feb  7 00:03:42 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 28464. End Pos. 28538 : 74 bytes written w/newline
+Fri Feb  7 00:05:46 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 28603. End Pos. 28677 : 74 bytes written w/newline
+Fri Feb  7 00:05:46 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 28742. End Pos. 28816 : 74 bytes written w/newline
+Fri Feb  7 00:10:15 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 28881. End Pos. 28955 : 74 bytes written w/newline
+Fri Feb  7 00:10:15 2020 :: Successfully bound server to 127.0.0.1 port 
+-->Start Pos. 29020. End Pos. 29094 : 74 bytes written w/newline
+Fri Feb  7 00:12:26 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 29159. End Pos. 29233 : 74 bytes written w/newline
+Fri Feb  7 00:12:26 2020 :: Successfully bound server to 127.0.0.1 port 
+-->Start Pos. 29298. End Pos. 29372 : 74 bytes written w/newline
+Fri Feb  7 00:14:03 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 29437. End Pos. 29511 : 74 bytes written w/newline
+Fri Feb  7 00:14:03 2020 :: Successfully bound server to 127.0.0.1 port 
+-->Start Pos. 29576. End Pos. 29650 : 74 bytes written w/newline
+Fri Feb  7 00:17:51 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 29715. End Pos. 29789 : 74 bytes written w/newline
+Fri Feb  7 00:17:51 2020 :: Successfully bound server to 127.0.0.1 port 
+-->Start Pos. 29854. End Pos. 29928 : 74 bytes written w/newline
+Fri Feb  7 00:24:21 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 29993. End Pos. 30067 : 74 bytes written w/newline
+Fri Feb  7 00:24:21 2020 :: Successfully bound server to 127.0.0.1 port 
+-->Start Pos. 30132. End Pos. 30206 : 74 bytes written w/newline
+Fri Feb  7 00:25:45 2020 :: Attempting to bind server to 127.0.0.1 port 
+-->Start Pos. 30271. End Pos. 30345 : 74 bytes written w/newline
+Fri Feb  7 00:25:45 2020 :: Successfully bound server to 127.0.0.1 port 
+-->Start Pos. 30410. End Pos. 30484 : 74 bytes written w/newline
+Sat Feb 15 08:27:27 2020 :: Attempting to bind server to 127.0.0.1 port Ò
+-->Start Pos. 30549. End Pos. 30623 : 74 bytes written w/newline
+Sat Feb 15 08:27:27 2020 :: Successfully bound server to 127.0.0.1 port Ò
+-->Start Pos. 30688. End Pos. 30762 : 74 bytes written w/newline

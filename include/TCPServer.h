@@ -23,25 +23,21 @@ public:
    void error(const char *msg);
    void sendMenu(int socketFD);
    //using const char *userinput becuase I dont need to modify userinput buffer
-   // *userinput is a pointer to a charachter array
+   // *userinput is a pointer to a character array
    void ProcessClientResponse(int socketFD, char *userinput);
-   //void displayCountdown (int socketFD);
+   //void displayCountdown (int socketFD); was moved to strfuncts.cpp so that both
+   //client and server could use the function if desired.NOTE, funciton only used
+   //in TCPServer.cpp
 	
 private:
  
- //See Compiler Error in TCDPServer.cpp
- 
    //set of socket descriptors 
  	int opt = TRUE; 
-	int master_socket , addrlen , new_socket , client_socket[30], max_clients = 2 , activity, i , valread , sd; 
+	int master_socket , addrlen , new_socket , client_socket[30], max_clients = 30 , activity, i , valread , sd; 
 	int max_sd; 
 	struct sockaddr_in _address;
-    //struct in_addr _in_addr; 
-    
-	//a message 
-	//char *message = (char *) "ECHO Daemon v1.0\r\n"; 
    std::string message;
-	char buffer[1025]; //data buffer of 1K
+	char buffer[1025]; //data buffer of 1K and is zeroed out in the TCPServer Constructor
 
 };
 #endif

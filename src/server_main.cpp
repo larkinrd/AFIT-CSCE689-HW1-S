@@ -35,15 +35,6 @@ int main(int argc, char *argv[]) {
    int c = 0;
    long portval;
 
-//***LARKIN TO DELETE
-//std::cout << "The contents of c is:" << c << "\n"; 
-//std::cout << "The contents of argc is:" << argc << "\n"; 
-//std::cout << "The contents of argv[0] is:" << argv[0] << "\n";
-//std::cout << "The contents of argv[1] is:" << argv[1] << "\n"; 
-//***LARKIN TO DELETE
-
-
-
    while ((c = getopt(argc, argv, "p:a:smw")) != -1) {
       switch (c) {
 
@@ -113,7 +104,6 @@ int main(int argc, char *argv[]) {
    //for (;;){
    
    try {
-      std::cout << "116:before handleobjects" << std::endl; //https://dev.to/lucpattyn/stdcout-is-not-printing-in-consoleterminal-5emn
       server.HandleAcceptedObjects();
    } catch (runtime_error &e) {
       cerr << "Client error received: " << e.what() << std::endl;
